@@ -13,20 +13,26 @@ from foodscrape.sitemap import scrape_sitemap
 def main():
     recipe_fetch_strategy = partial(fetch_data_uncompressed)
     recipe_scrape_strategy = partial(scrape_recipe)
-    recipe_export_strategy = partial(
-        export_csv, filename=Config.DATA_DIR / "recipes/recipe-1.csv"
-    )
+    recipe_export_strategy = partial(return_as_df)
     recipe_scraper = Scraper(
         recipe_fetch_strategy, recipe_scrape_strategy, recipe_export_strategy
     )
     count = 0
-    with open(Config.DATA_DIR / "sitemaps/sitemap-1.txt", "r", encoding="UTF-8") as f:
-        url = f.readline()
-        while url and count < 1:
-            url = url.strip()
-            recipe_scraper.scrape(url)
-            count += 1
-            url = f.readline()
+    url_df = pd.read_csv(Config.DATA_DIR / "sitemaps/sitemap-1.csv")
+    urls = url_df["url"]
+    recipe_df = pd.DataFrame()
+    i = 0
+    for url in urls:
+        recipe = recipe_scraper.scrape(url)
+        if isinstance(recipe, pd.DataFrame):
+            recipe_df = pd.concat([recipe, recipe_df])
+
+        i += 1
+
+        if i >= 10:
+            break
+
+    recipe_df.to_csv(Config.DATA_DIR / "recipes/recipe-1.csv")
 
 
 def create_sitemap_scraper():
@@ -42,5 +48,5 @@ def create_sitemap_scraper():
 
 
 if __name__ == "__main__":
-    create_sitemap_scraper()
-    # main()
+    # create_sitemap_scraper()
+    main()
