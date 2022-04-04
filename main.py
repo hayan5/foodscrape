@@ -1,7 +1,9 @@
 from functools import partial
 
+import pandas as pd
+
 from foodscrape.config import Config
-from foodscrape.export import export_csv, export_log, export_sitemap_txt
+from foodscrape.export import export_csv, export_log, export_sitemap_txt, return_as_df
 from foodscrape.fetch import fetch_data_compressed, fetch_data_uncompressed
 from foodscrape.recipe import scrape_recipe
 from foodscrape.scrape import Scraper
@@ -30,15 +32,15 @@ def main():
 def create_sitemap_scraper():
     sitemap_fetch_strategy = partial(fetch_data_compressed)
     sitemap_scrape_strategy = partial(scrape_sitemap)
-    sitemap_export_strategy = partial(
-        export_sitemap_txt, filename=Config.DATA_DIR / "sitemaps/sitemap-1.txt"
-    )
+    sitemap_export_strategy = partial(return_as_df)
     sitemap_scraper = Scraper(
         sitemap_fetch_strategy, sitemap_scrape_strategy, sitemap_export_strategy
     )
-    sitemap_scraper.scrape("https://www.food.com/sitemap-1.xml.gz")
+    df = sitemap_scraper.scrape("https://www.food.com/sitemap-1.xml.gz")
+    if isinstance(df, pd.DataFrame):
+        df.to_csv(Config.DATA_DIR / "sitemaps/sitemap-1.csv")
 
 
 if __name__ == "__main__":
-    # create_sitemap_scraper()
-    main()
+    create_sitemap_scraper()
+    # main()

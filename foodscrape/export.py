@@ -31,3 +31,7 @@ def export_csv(data: ScrapedElement, filename: pathlib.Path) -> None:
     df = pd.DataFrame.from_dict([data.__dict__])
     df.to_csv(filename)
     logger.info(df)
+
+
+def return_as_df(data: ScrapedElement) -> pd.DataFrame:
+    return data.to_dataframe()

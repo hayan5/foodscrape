@@ -1,5 +1,7 @@
 from dataclasses import dataclass, field
+from typing import Union
 
+import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
@@ -19,10 +21,10 @@ class Scraper:
 
     def scrape(
         self, url: str, fetch: bool = True, soup: BeautifulSoup = BeautifulSoup()
-    ) -> None:
+    ) -> Union[None, pd.DataFrame]:
         if fetch:
             fetched_data: bytes = self.fetch_strategy(url, self.session)
             soup = BeautifulSoup(fetched_data, "lxml")
 
         scraped_data = self.scrape_strategy(soup)
-        self.export_strategy(scraped_data)
+        return self.export_strategy(scraped_data)
