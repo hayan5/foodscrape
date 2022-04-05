@@ -4,6 +4,8 @@
   "python.testing.pytestEnabled": true,
   "python.testing.pytestArgs": ["tests"],
   "python.pythonPath": ".venv/bin/python",
+  // "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.poetryPath": "poetry",
   "python.linting.pylintPath": ".venv/bin/pylint",
   "python.linting.banditArgs": ["bandit", "--disable=B301"],
   "python.linting.pylintArgs": [
@@ -16,7 +18,14 @@
   "cSpell.words": ["ingr", "iterrows", "lxml", "NNPS", "webscraper"],
   "python.linting.banditEnabled": true,
   "python.linting.pylintEnabled": true,
-  "python.linting.enabled": true
+  "python.linting.enabled": true,
+  "python.linting.mypyArgs": [
+    "--follow-imports=silent",
+    "--ignore-missing-imports",
+    "--show-column-numbers",
+    "--no-pretty",
+    "--plugins=sqlalchemy.ext.mypy.plugin"
+  ]
 }
 // tests = ["B201", "B301"]
 // skips = ["B101", "B601"]
