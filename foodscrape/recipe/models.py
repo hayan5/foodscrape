@@ -39,11 +39,11 @@ class Recipe(Model):  # type: ignore
     )
 
     instructions = db.relationship("Instruction", backref="recipe", lazy=True)
-    # recipe_ingredients: List[Ingredient] = field(default_factory=list)
+    ingredients = db.relationship("Ingredient", backref="recipe", lazy=True)
 
 
 class Keyword(Model):
-    __tablename__ = "recipe"
+    __tablename__ = "keyword"
 
     id = Column(db.Integer, primary_key=True)
     text = db.Column(db.String)
@@ -52,11 +52,21 @@ class Keyword(Model):
     )
 
 
-class Instruction(db.Model):  # type: ignore
+class Instruction(Model):
     __tablename__ = "instruction"
 
     id = db.Column(db.Integer, primary_key=True)
     seq_num = db.Column(db.Integer)
+    text = db.Column(db.String)
+    recipe_id = db.Column(
+        db.Integer, db.ForeignKey("recipe.id"), nullable=False
+    )
+
+
+class Ingredient(Model):
+    __tablename__ = "ingredient"
+
+    id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String)
     recipe_id = db.Column(
         db.Integer, db.ForeignKey("recipe.id"), nullable=False

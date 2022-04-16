@@ -2,7 +2,7 @@ from typing import Any
 
 from flask import Flask
 
-from foodscrape import commands, sitemap
+from foodscrape import commands, recipe, sitemap
 from foodscrape.config import ProdConfig
 from foodscrape.extensions import db, migrate
 from foodscrape.sitemap.models import Sitemap
@@ -38,3 +38,4 @@ def register_shellcontext(app):
 
 def register_blueprints(app):
     app.register_blueprint(sitemap.views.blueprint)
+    app.register_blueprint(recipe.views.blueprint)
