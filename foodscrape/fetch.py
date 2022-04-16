@@ -28,7 +28,9 @@ def fetch_data_uncompressed(
 
     except RequestException as e:
         logger.error(
-            "An error occurred downloading data from %s \n Cause of error: %s", url, e
+            "An error occurred downloading data from %s \n Cause of error: %s",
+            url,
+            e,
         )
         sys.exit()
 
@@ -61,6 +63,8 @@ def fetch_data_compressed(
 
     except RequestException as e:
         logger.error(
-            "An error occurred downloading data from %s \n Cause of error: %s", url, e
+            "An error occurred downloading data from %s \n Cause of error: %s",
+            url,
+            e,
         )
         sys.exit()

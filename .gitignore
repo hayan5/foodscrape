@@ -156,3 +156,5 @@ cython_debug/
 data/
 logs/
 
+*.db
+migrations/

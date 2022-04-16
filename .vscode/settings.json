@@ -1,26 +1,14 @@
 {
-  "editor.tabSize": 4,
-  "python.formatting.provider": "black",
-  "python.testing.pytestEnabled": true,
-  "python.testing.pytestArgs": ["tests"],
-  "python.pythonPath": ".venv/bin/python",
-  "python.linting.pylintPath": ".venv/bin/pylint",
-  "python.linting.banditArgs": ["bandit", "--disable=B301"],
-  "python.linting.pylintArgs": [
-    "--disable=too-few-public-methods",
-    "--disable=C0111",
-    "--disable=invalid-name",
-    "--disable=super-init-not-called",
-    "--disable=consider-using-enumerate"
-  ],
-  "cSpell.words": ["ingr", "iterrows", "lxml", "NNPS", "webscraper"],
-  "python.linting.banditEnabled": true,
-  "python.linting.pylintEnabled": true,
-  "python.linting.enabled": true
+    "python.linting.banditArgs": [
+        "-c",
+        "${workspaceFolder}/.bandit.yml"
+    ],
+    "cSpell.words": [
+        "apispec",
+        "foodscrape",
+        "isort",
+        "ondelete",
+        "onupdate"
+    ]
+    
 }
-// tests = ["B201", "B301"]
-// skips = ["B101", "B601"]
-// "--disable=invalid-name"
-
-//  "--disable=C0111",
-//  "--disable=line-too-long",

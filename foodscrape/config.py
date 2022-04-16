@@ -1,31 +1,38 @@
-import logging
-import pathlib
-from dataclasses import dataclass, field
+import os
 
 
-@dataclass
-class AppConfig:
-    # sitemap_url: str = "https://www.food.com/sitemap.xml"
-    BASE_DIR: pathlib.Path = field(default=pathlib.Path.cwd(), init=False)
-    DATA_DIR: pathlib.Path = field(init=False)
-    LOGGER_DIR: pathlib.Path = field(init=False)
-    MODEL_DIR: pathlib.Path = field(init=False)
-    LOGGER_FORMAT: str = field(
-        default="[%(asctime)s] [%(levelname)s] %(name)s %(funcName)s :: %(message)s",
+class Config:
+    SECRET_KEY = os.getenv("FOODSCRAPE_SECRET", "secret-key")
+    APP_DIR = os.path.abspath(os.path.dirname(__file__))
+    PROJECT_ROOT = os.path.abspath(os.path.join(APP_DIR, os.pardir))
+
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    LOGGER_FORMAT = (
+        "[%(asctime)s] [%(levelname)s] %(name)s %(funcName)s :: "
+        + "%(message)s"
     )
-    LOGGER_LEVEL: int = field(default=logging.INFO)
-
-    def __post_init__(self) -> None:
-        self.LOGGER_DIR = self.BASE_DIR / "logs"
-        self.DATA_DIR = self.BASE_DIR / "data"
-        self.MODEL_DIR = self.BASE_DIR / "models"
-
-        if not self.LOGGER_DIR.is_dir():
-            self.LOGGER_DIR.mkdir()
-        if not self.DATA_DIR.is_dir():
-            self.DATA_DIR.mkdir()
-        if not self.MODEL_DIR.is_dir():
-            self.MODEL_DIR.mkdir()
 
 
-Config = AppConfig()
+class ProdConfig(Config):
+    ENV = "prod"
+    DEBUG = False
+    SQLALCHEMY_DATABASE_URI = os.environ.get(
+        "DATABASE_URL",
+        "postgresql://postgres:password@127.0.0.1:5433/foodscrape",
+    )
+
+
+class DevConfig(Config):
+    ENV = "dev"
+    DEBUG = True
+    DB_NAME = "dev.db"
+
+    DB_PATH = os.path.join(Config.PROJECT_ROOT, DB_NAME)
+    SQLALCHEMY_DATABASE_URI = "sqlite:///{0}".format(DB_PATH)
+
+
+class TestConfig(Config):
+    TESTING = True
+    DEBUG = True
+    SQLALCHEMY_DATABASE_URI = "sqlite://"
