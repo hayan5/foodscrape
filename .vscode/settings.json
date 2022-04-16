@@ -4,6 +4,7 @@
         "${workspaceFolder}/.bandit.yml"
     ],
     "cSpell.words": [
+        "apispec",
         "foodscrape",
         "isort",
         "ondelete",
