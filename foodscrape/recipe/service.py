@@ -1,3 +1,4 @@
+import html
 import json
 from typing import Any, List, Union
 
@@ -10,6 +11,7 @@ from foodscrape.fetch import fetch_data_uncompressed
 from foodscrape.logger import get_logger
 
 from .models import Ingredient, Instruction, Keyword, Recipe
+from .util import IngredientModel
 
 logger = get_logger(__name__)
 
@@ -41,10 +43,7 @@ def scrape_recipe(soup: BeautifulSoup) -> Recipe:
     total_time = json_data["totalTime"]
     rating = json_data["aggregateRating"]["ratingValue"]
     instructions = get_instructions(json_data["recipeInstructions"])
-    ingredients = json_data["recipeIngredient"]
-
-    # for i in recipe_ingredients:
-    #     logger.info(i)
+    ingredients = scrape_ingredient(soup)
 
     recipe = Recipe(
         name=name,
@@ -75,15 +74,14 @@ def scrape_recipe(soup: BeautifulSoup) -> Recipe:
         db.session.add(instruction_model)
         i += 1
 
-    recipe_ingredients = []
+    # recipe_ingredients = []
     for ingredient in ingredients:
-        ingredient_model = Ingredient(text=ingredient)
-        recipe_ingredients.append(ingredient_model)
-        db.session.add(ingredient_model)
+        # recipe_ingredients.append(ingredient)
+        db.session.add(ingredient)
 
     recipe.instructions = recipe_instructions
     recipe.keywords = recipe_keywords
-    recipe.ingredients = recipe_ingredients
+    recipe.ingredients = ingredients
     db.session.commit()
 
     return recipe
@@ -101,3 +99,74 @@ def get_instructions(json_list: Any) -> List[str]:
         instructions.append(i["text"])
 
     return instructions
+
+
+def scrape_ingredient(soup: BeautifulSoup) -> List[Ingredient]:
+    ingredients: List[Ingredient] = list()
+    ingredient_elements = soup.find_all(
+        "div", class_="recipe-ingredients__ingredient"
+    )
+    for element in ingredient_elements:
+        quantity = get_quantity(element)
+        original_text, names = parse_ingredient(element)
+
+        ingredient = Ingredient(
+            ingredient_name=names[0][1],
+            quantity=quantity,
+            text=original_text,
+        )
+
+        ingredients.append(ingredient)
+
+    return ingredients
+
+
+def parse_ingredient(element):
+    ingredient_parts_element = element.find(
+        "div", class_="recipe-ingredients__ingredient-parts"
+    )
+    names = ""
+    original_text = ""
+
+    if isinstance(ingredient_parts_element, bs4.element.Tag):
+        text = scrape_ingredient_parts(ingredient_parts_element)
+        original_text = text
+        names = IngredientModel.find_ingredients(text)
+
+    return (original_text, names)
+
+
+def scrape_ingredient_parts(ingredient_parts_element: bs4.element.Tag):
+    return parse_text(ingredient_parts_element.getText())
+
+
+def parse_text(text: str) -> str:
+    text = html.unescape(text)
+    text = " ".join(text.split())
+    return text
+
+
+def get_text(ingredient_element) -> str:
+    text = ingredient_element.getText()
+    text = html.unescape(text)
+    text = " ".join(text.split())
+    return text
+
+
+def get_quantity(ingredient_element) -> str:
+    quantity: str = ""
+
+    quantity_element = ingredient_element.find(
+        "div", class_="recipe-ingredients__ingredient-quantity"
+    )
+
+    if isinstance(quantity_element, bs4.element.Tag):
+        quantity = quantity_element.getText()
+        quantity = quantity.replace("\u2044", "/")
+        quantity = html.unescape(quantity)
+        quantity = quantity.replace(" -", "-")
+        quantity = " ".join(quantity.split())
+        quantity = quantity.replace(" -", " - ")
+        quantity = quantity.replace("- ", " - ")
+
+    return quantity
