@@ -68,6 +68,8 @@ class Ingredient(Model):
 
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String)
+    quantity = db.Column(db.String)
+    ingredient_name = db.Column(db.String)
     recipe_id = db.Column(
         db.Integer, db.ForeignKey("recipe.id"), nullable=False
     )

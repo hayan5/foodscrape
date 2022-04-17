@@ -8,7 +8,12 @@ from foodscrape.database import db
 from foodscrape.recipe.models import Recipe
 
 # from .models import
-from .serializers import IngredientSchema, recipe_schema, recipe_schemas
+from .serializers import (
+    IngredientSchema,
+    recipe_schema,
+    recipe_schemas,
+    search_schema,
+)
 from .service import get_data
 
 blueprint = Blueprint("recipe", __name__)
@@ -31,3 +36,10 @@ def get_sitemap():
     sitemaps = db.session.query(Recipe).all()
 
     return sitemaps
+
+
+@blueprint.route("/api/recipe/find", methods=("GET",))
+@use_kwargs(search_schema)
+@marshal_with(recipe_schemas)
+def find_recipes(ingredients):
+    return ""

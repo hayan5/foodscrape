@@ -14,7 +14,8 @@ class InstructionSchema(Schema):
 
 
 class IngredientSchema(Schema):
-
+    quantity = fields.Str()
+    ingredient_name = fields.Str()
     text = fields.Str()
     recipe_id = fields.Integer()
 
@@ -39,6 +40,10 @@ class RecipeSchema(Schema):  # type: ignore
     keywords = fields.List(fields.Nested(KeywordSchema))
 
 
+class SearchSchema(Schema):
+    ingredient_name = fields.Str()
+
+
 recipe_schema = RecipeSchema()
 recipe_schemas = RecipeSchema(many=True)
 keyword_schema = KeywordSchema()
@@ -47,3 +52,4 @@ ingredient_schema = IngredientSchema()
 ingredient_schemas = IngredientSchema(many=True)
 instruction_schema = InstructionSchema()
 instruction_schemas = InstructionSchema(many=True)
+search_schema = SearchSchema(many=True)
