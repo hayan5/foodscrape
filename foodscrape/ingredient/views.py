@@ -4,9 +4,9 @@ from marshmallow import fields
 
 from foodscrape.database import db
 
-from .models import RawIngredient
+from .models import ScrapedIngredient
 from .serializers import raw_ingredient_schemas
-from .service import scrape_url
+from .service import find_ingredients_from_url
 
 blueprint = Blueprint("ingredient", __name__)
 
@@ -15,12 +15,12 @@ blueprint = Blueprint("ingredient", __name__)
 @use_kwargs({"url": fields.Str()})
 @marshal_with(raw_ingredient_schemas)
 def scrape(url: str):
-    ingredients = scrape_url(url)
+    ingredients = find_ingredients_from_url(url)
     return ingredients
 
 
 @blueprint.route("/api/ingredient", methods=("GET",))
 @marshal_with(raw_ingredient_schemas)
 def get_all():
-    res = db.session.query(RawIngredient).all()
+    res = db.session.query(ScrapedIngredient).all()
     return res

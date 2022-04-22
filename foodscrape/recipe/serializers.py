@@ -41,7 +41,7 @@ class RecipeSchema(Schema):  # type: ignore
 
 
 class SearchSchema(Schema):
-    ingredient_name = fields.Str()
+    ingredient_name = fields.List(fields.Str())
 
 
 recipe_schema = RecipeSchema()
@@ -52,4 +52,4 @@ ingredient_schema = IngredientSchema()
 ingredient_schemas = IngredientSchema(many=True)
 instruction_schema = InstructionSchema()
 instruction_schemas = InstructionSchema(many=True)
-search_schema = SearchSchema(many=True)
+search_schema = SearchSchema()

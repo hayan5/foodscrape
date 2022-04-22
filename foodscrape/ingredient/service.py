@@ -1,4 +1,5 @@
 import html
+from typing import List
 
 import requests
 from bs4 import BeautifulSoup
@@ -6,10 +7,10 @@ from bs4 import BeautifulSoup
 from foodscrape.database import db
 from foodscrape.fetch import fetch_data_uncompressed
 
-from .models import RawIngredient
+from .models import ScrapedIngredient
 
 
-def scrape_url(url: str):
+def find_ingredients_from_url(url: str) -> List[ScrapedIngredient]:
 
     session = requests.Session()
     data = fetch_data_uncompressed(url, session)
@@ -26,12 +27,33 @@ def scrape_url(url: str):
         for child in children:
             ingredient = proccess_text(child.text)
 
-            raw_ingredient = RawIngredient(name=ingredient)
+            raw_ingredient = ScrapedIngredient(name=ingredient)
             ingredients.append(raw_ingredient)
-            db.session.add(raw_ingredient)
+
+    save_ingredients(ingredients)
+    return ingredients
+
+
+def save_ingredients(ingredients: List[ScrapedIngredient]) -> None:
+    for ingredient in ingredients:
+        ingredient_name = ingredient.name
+        if does_ingredient_exist(ingredient_name) is False:
+            db.session.add(ingredient)
 
     db.session.commit()
-    return ingredients
+
+
+def does_ingredient_exist(ingredient_name: str) -> bool:
+    q = db.session.query(ScrapedIngredient).filter(
+        ScrapedIngredient.name == ingredient_name
+    )
+    if q.count() == 0:
+        return False
+
+    ingredient: ScrapedIngredient = q.first()
+    ingredient.times_seen += 1
+
+    return True
 
 
 def proccess_text(text: str) -> str:
