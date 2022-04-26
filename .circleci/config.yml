@@ -28,5 +28,6 @@ jobs:
 workflows:
     build_and_test:
       jobs:
+        - poetry/install
         - build
         
