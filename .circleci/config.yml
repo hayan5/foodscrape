@@ -2,9 +2,9 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
+
 orbs:
   poetry: frameio/poetry@0.25.5
-
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
@@ -26,8 +26,4 @@ jobs:
 workflows:
     example-workflow:
       jobs:
-        - poetry/install:
-            attach_workspace: false 
-            checkout: true 
-            persist_to_workspace: true 
-            use_cache: true 
+        - poetry/install
