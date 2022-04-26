@@ -9,7 +9,7 @@ from foodscrape.database import db
 
 # from foodscrape.ingredient.models import RawIngredient
 from foodscrape.ingredient.serializers import raw_ingredient_schemas
-from foodscrape.recipe.models import Ingredient, Recipe
+from foodscrape.recipe.models import Recipe, Recipe_Ingredient
 
 # from .models import
 from .serializers import (

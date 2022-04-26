@@ -39,7 +39,9 @@ class Recipe(Model):  # type: ignore
     )
 
     instructions = db.relationship("Instruction", backref="recipe", lazy=True)
-    ingredients = db.relationship("Ingredient", backref="recipe", lazy=True)
+    ingredients = db.relationship(
+        "RecipeIngredient", backref="recipe", lazy=True
+    )
 
 
 class Keyword(Model):
@@ -63,8 +65,8 @@ class Instruction(Model):
     )
 
 
-class Ingredient(Model):
-    __tablename__ = "ingredient"
+class Recipe_Ingredient(Model):
+    __tablename__ = "recipe_ingredient"
 
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.String)

@@ -24,5 +24,7 @@ def sitemap(url):
 @marshal_with(sitemap_schemas)
 def get_sitemap():
     sitemaps = db.session.query(Sitemap).all()
-
+    # for sitemap in sitemaps:
+    #     db.session.delete(sitemap)
+    # db.session.commit()
     return sitemaps

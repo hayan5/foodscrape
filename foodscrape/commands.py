@@ -15,3 +15,11 @@ def test():
     if result.wasSuccessful():
         return 0
     return 1
+
+
+# pytest --cov=. tests/ --cov-report xml:cov.xml
+
+
+def hello():
+    print("hello")
+    return 1 + 3

@@ -1,8 +1,8 @@
 from foodscrape.database import Column, Model, db
 
 
-class ScrapedIngredient(Model):
-    __tablename__ = "scraped_ingredient"
+class Ingredient(Model):
+    __tablename__ = "ingredient"
 
     id = Column(db.Integer, primary_key=True)
     name = Column(db.String, unique=True)

@@ -7,10 +7,10 @@ from bs4 import BeautifulSoup
 from foodscrape.database import db
 from foodscrape.fetch import fetch_data_uncompressed
 
-from .models import ScrapedIngredient
+from .models import Ingredient
 
 
-def find_ingredients_from_url(url: str) -> List[ScrapedIngredient]:
+def find_ingredients_from_url(url: str) -> List[Ingredient]:
 
     session = requests.Session()
     data = fetch_data_uncompressed(url, session)
@@ -27,14 +27,14 @@ def find_ingredients_from_url(url: str) -> List[ScrapedIngredient]:
         for child in children:
             ingredient = proccess_text(child.text)
 
-            raw_ingredient = ScrapedIngredient(name=ingredient)
+            raw_ingredient = Ingredient(name=ingredient)
             ingredients.append(raw_ingredient)
 
     save_ingredients(ingredients)
     return ingredients
 
 
-def save_ingredients(ingredients: List[ScrapedIngredient]) -> None:
+def save_ingredients(ingredients: List[Ingredient]) -> None:
     for ingredient in ingredients:
         ingredient_name = ingredient.name
         if does_ingredient_exist(ingredient_name) is False:
@@ -44,13 +44,11 @@ def save_ingredients(ingredients: List[ScrapedIngredient]) -> None:
 
 
 def does_ingredient_exist(ingredient_name: str) -> bool:
-    q = db.session.query(ScrapedIngredient).filter(
-        ScrapedIngredient.name == ingredient_name
-    )
+    q = db.session.query(Ingredient).filter(Ingredient.name == ingredient_name)
     if q.count() == 0:
         return False
 
-    ingredient: ScrapedIngredient = q.first()
+    ingredient: Ingredient = q.first()
     ingredient.times_seen += 1
 
     return True

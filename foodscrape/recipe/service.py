@@ -10,7 +10,7 @@ from foodscrape.database import db
 from foodscrape.fetch import fetch_data_uncompressed
 from foodscrape.logger import get_logger
 
-from .models import Ingredient, Instruction, Keyword, Recipe
+from .models import Instruction, Keyword, Recipe, Recipe_Ingredient
 from .util import IngredientModel
 
 logger = get_logger(__name__)
@@ -101,8 +101,8 @@ def get_instructions(json_list: Any) -> List[str]:
     return instructions
 
 
-def scrape_ingredient(soup: BeautifulSoup) -> List[Ingredient]:
-    ingredients: List[Ingredient] = list()
+def scrape_ingredient(soup: BeautifulSoup) -> List[Recipe_Ingredient]:
+    ingredients: List[Recipe_Ingredient] = list()
     ingredient_elements = soup.find_all(
         "div", class_="recipe-ingredients__ingredient"
     )
@@ -110,7 +110,7 @@ def scrape_ingredient(soup: BeautifulSoup) -> List[Ingredient]:
         quantity = get_quantity(element)
         original_text, names = parse_ingredient(element)
 
-        ingredient = Ingredient(
+        ingredient = Recipe_Ingredient(
             ingredient_name=names[0][1],
             quantity=quantity,
             text=original_text,
