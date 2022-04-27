@@ -1,7 +1,7 @@
 from flask_testing import TestCase
 
 from foodscrape.app import create_app, db
-from foodscrape.scrape.models import Sitemap
+from foodscrape.scrape.models import Ingredient, Sitemap
 
 
 class TestSitemap(TestCase):
@@ -82,3 +82,56 @@ class TestSitemap(TestCase):
 
         for sitemap in sitemaps:
             assert sitemap.recipe_scraped is False
+
+
+class TestIngredient(TestCase):
+    SQLALCHEMY_DATABASE_URI = "sqlite://"
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    TESTING = True
+
+    def create_app(self):
+        return create_app(self)
+
+    def setUp(self):
+        db.create_all()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+
+    def populate_db(self):
+        ingredients = [("chicken", 3), ("bread", 5), ("rice", 1)]
+
+        for name, times in ingredients:
+            for i in range(times):
+                ingredient = Ingredient(name=name)
+                ingredient.save()
+
+    def test_save(self):
+        ingredient = Ingredient("chicken")
+        result = ingredient.save()
+
+        assert result.name == "chicken"
+        assert result.times_seen == 1
+
+        ingredient = Ingredient("chicken")
+        result = ingredient.save()
+
+        assert result.name == "chicken"
+        assert result.times_seen == 2
+
+    def test_get_seen_greater_than_or_eq(self):
+        self.populate_db()
+
+        ingredients = Ingredient.get_seen_greater_than_or_eq(3)
+
+        for ingredient in ingredients:
+            assert ingredient.times_seen >= 3
+
+    def test_get_seen_less_than_or_eq(self):
+        self.populate_db()
+
+        ingredients = Ingredient.get_seen_less_than_or_eq(3)
+
+        for ingredient in ingredients:
+            assert ingredient.times_seen <= 3

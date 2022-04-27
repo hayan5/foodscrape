@@ -74,15 +74,75 @@ class Sitemap(Model):
         return sitemaps
 
 
-# class Ingredient(Model):
-#     __tablename__ = "ingredient"
+class Ingredient(Model):
+    __tablename__ = "ingredient"
 
-#     id = Column(db.Integer, primary_key=True)
-#     name = Column(db.String, unique=True, nullable=False)
-#     times_seen = Column(db.Integer, default=1, nullable=False)
+    id = Column(db.Integer, primary_key=True)
+    name = Column(db.String, unique=True, nullable=False)
+    times_seen = Column(db.Integer, default=1, nullable=False)
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def __repr__(self) -> str:
+        return "<{} {} {}>".format(
+            self.__class__.__name__, self.name, self.times_seen
+        )
+
+    def save(self) -> Ingredient:
+
+        ingredient: Ingredient = (
+            db.session.query(Ingredient).filter_by(name=self.name).first()
+        )
+
+        if ingredient is None:
+            db.session.add(self)
+            db.session.commit()
+            return self
+
+        ingredient.times_seen += 1
+        db.session.commit()
+
+        return ingredient
+
+    @staticmethod
+    def get_seen_greater_than_or_eq(times_seen: int) -> List[Ingredient]:
+        ingredients: List[Ingredient] = (
+            db.session.query(Ingredient)
+            .filter(Ingredient.times_seen >= times_seen)
+            .all()
+        )
+        return ingredients
+
+    @staticmethod
+    def get_seen_less_than_or_eq(times_seen: int) -> List[Ingredient]:
+        ingredients: List[Ingredient] = (
+            db.session.query(Ingredient)
+            .filter(Ingredient.times_seen <= times_seen)
+            .all()
+        )
+        return ingredients
 
 
-# class Recipe(Model):  # type: ignore
+# recipe_to_keyword = db.Table(
+#     "recipe_to_keyword",
+#     db.Column("id", db.Integer, primary_key=True),
+#     db.Column(
+#         "keyword_id",
+#         db.Integer,
+#         db.ForeignKey("keyword.id", ondelete="CASCADE"),
+#         nullable=False,
+#     ),
+#     db.Column(
+#         "recipe_id",
+#         db.Integer,
+#         db.ForeignKey("recipe.id", ondelete="CASCADE"),
+#         nullable=False,
+#     ),
+# )
+
+
+# class Recipe(Model):
 #     __tablename__ = "recipe"
 
 #     id = Column(db.Integer, primary_key=True)
@@ -98,9 +158,10 @@ class Sitemap(Model):
 #     total_time = Column(db.String)
 #     rating = Column(db.String)
 
-# keywords = db.relationship(
-#     "Keyword", secondary=recipe_keyword, back_populates="recipes"
-# )
+#     keywords = db.relationship(
+#         "Keyword", secondary=recipe_to_keyword, back_populates="recipes"
+#     )
+
 
 # instructions = db.relationship("Instruction", backref="recipe", lazy=True)
 # ingredients = db.relationship(
@@ -112,10 +173,10 @@ class Sitemap(Model):
 #     __tablename__ = "keyword"
 
 #     id = Column(db.Integer, primary_key=True)
-# text = db.Column(db.String)
-# recipes = db.relationship(
-#     "Recipe", secondary=recipe_keyword, back_populates="keywords"
-# )
+#     text = db.Column(db.String)
+#     recipes = db.relationship(
+#         "Recipe", secondary=recipe_to_keyword, back_populates="keywords"
+#     )
 
 
 # class Instruction(Model):
@@ -138,22 +199,4 @@ class Sitemap(Model):
 # ingredient_name = db.Column(db.String)
 # recipe_id = db.Column(
 #     db.Integer, db.ForeignKey("recipe.id"), nullable=False
-# )
-
-
-# recipe_keyword = db.Table(
-#     "recipe_keyword",
-#     db.Column("id", db.Integer, primary_key=True),
-#     db.Column(
-#         "keyword_id",
-#         db.Integer,
-#         db.ForeignKey("keyword.id", ondelete="CASCADE"),
-#         nullable=False,
-#     ),
-#     db.Column(
-#         "recipe_id",
-#         db.Integer,
-#         db.ForeignKey("recipe.id", ondelete="CASCADE"),
-#         nullable=False,
-#     ),
 # )
