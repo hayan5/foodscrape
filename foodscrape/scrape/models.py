@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import List, Union
 
+from sqlalchemy import true
+
 from foodscrape.database import Column, Model
 from foodscrape.extensions import db
 from foodscrape.logger import get_logger
@@ -124,59 +126,76 @@ class Ingredient(Model):
         return ingredients
 
 
-# recipe_to_keyword = db.Table(
-#     "recipe_to_keyword",
-#     db.Column("id", db.Integer, primary_key=True),
-#     db.Column(
-#         "keyword_id",
-#         db.Integer,
-#         db.ForeignKey("keyword.id", ondelete="CASCADE"),
-#         nullable=False,
-#     ),
-#     db.Column(
-#         "recipe_id",
-#         db.Integer,
-#         db.ForeignKey("recipe.id", ondelete="CASCADE"),
-#         nullable=False,
-#     ),
-# )
+recipe_to_keyword = db.Table(
+    "recipe_to_keyword",
+    db.Column("id", db.Integer, primary_key=True),
+    db.Column(
+        "keyword_id",
+        db.Integer,
+        db.ForeignKey("keyword.id", ondelete="CASCADE"),
+        nullable=False,
+    ),
+    db.Column(
+        "recipe_id",
+        db.Integer,
+        db.ForeignKey("recipe.id", ondelete="CASCADE"),
+        nullable=False,
+    ),
+)
 
 
-# class Recipe(Model):
-#     __tablename__ = "recipe"
+class Keyword(Model):
+    __tablename__ = "keyword"
 
-#     id = Column(db.Integer, primary_key=True)
-#     name = Column(db.String)
-#     date_published = Column(db.String)
-#     description = Column(db.String)
-#     image = Column(db.String)
-#     author = Column(db.String)
-#     recipe_category = Column(db.String)
-#     recipe_yield = Column(db.String)
-#     cook_time = Column(db.String)
-#     prep_time = Column(db.String)
-#     total_time = Column(db.String)
-#     rating = Column(db.String)
+    id = Column(db.Integer, primary_key=True)
+    text = db.Column(db.String, unique=true)
+    recipes = db.relationship(
+        "Recipe", secondary=recipe_to_keyword, back_populates="keywords"
+    )
 
-#     keywords = db.relationship(
-#         "Keyword", secondary=recipe_to_keyword, back_populates="recipes"
-#     )
+    def __init__(self, text: str):
+        self.text = text
+
+    @staticmethod
+    def get_all() -> List[Keyword]:
+        return db.session.query(Keyword).all()
+
+
+class Recipe(Model):
+    __tablename__ = "recipe"
+
+    id = Column(db.Integer, primary_key=True)
+    name = Column(db.String)
+    date_published = Column(db.String)
+    description = Column(db.String)
+    image = Column(db.String)
+    author = Column(db.String)
+    recipe_category = Column(db.String)
+    recipe_yield = Column(db.String)
+    cook_time = Column(db.String)
+    prep_time = Column(db.String)
+    total_time = Column(db.String)
+    rating = Column(db.String)
+
+    keywords = db.relationship(
+        "Keyword", secondary=recipe_to_keyword, back_populates="recipes"
+    )
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def save(self, keywords: List[Keyword] = None) -> Recipe:
+        self.keywords = keywords
+
+        db.session.add(self)
+        db.session.commit()
+        return self
 
 
 # instructions = db.relationship("Instruction", backref="recipe", lazy=True)
 # ingredients = db.relationship(
 #     "RecipeIngredient", backref="recipe", lazy=True
 # )
-
-
-# class Keyword(Model):
-#     __tablename__ = "keyword"
-
-#     id = Column(db.Integer, primary_key=True)
-#     text = db.Column(db.String)
-#     recipes = db.relationship(
-#         "Recipe", secondary=recipe_to_keyword, back_populates="keywords"
-#     )
 
 
 # class Instruction(Model):

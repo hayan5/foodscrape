@@ -1,7 +1,7 @@
 from flask_testing import TestCase
 
 from foodscrape.app import create_app, db
-from foodscrape.scrape.models import Ingredient, Sitemap
+from foodscrape.scrape.models import Ingredient, Keyword, Recipe, Sitemap
 
 
 class TestSitemap(TestCase):
@@ -135,3 +135,42 @@ class TestIngredient(TestCase):
 
         for ingredient in ingredients:
             assert ingredient.times_seen <= 3
+
+
+class TestRecipe(TestCase):
+    SQLALCHEMY_DATABASE_URI = "sqlite://"
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    TESTING = True
+
+    def create_app(self):
+        return create_app(self)
+
+    def setUp(self):
+        db.create_all()
+
+    def tearDown(self):
+        db.session.remove()
+        db.drop_all()
+
+    def create_keywords(self):
+        keyword_models = []
+        keywords = ["fun", "quick", "easy", "30min"]
+        for keyword in keywords:
+            keyword_model = Keyword(keyword)
+            keyword_models.append(keyword_model)
+
+        return keyword_models
+
+    def create_recipe(self):
+        recipe = Recipe("Chicken and Rice")
+        keywords = self.create_keywords()
+        recipe.save(keywords=keywords)
+
+    def test_save(self):
+        recipe = Recipe("Chicken and Rice")
+        keywords = self.create_keywords()
+        result = recipe.save(keywords=keywords)
+
+        assert result.name == recipe.name
+
+        assert len(Keyword.get_all()) == 4
