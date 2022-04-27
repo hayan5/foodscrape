@@ -16,7 +16,6 @@ jobs:
           FLASK_DEBUG: 1
 
     steps:
-      - poetry/install
       - checkout
       - run:
           name: run tests
