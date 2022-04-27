@@ -16,10 +16,7 @@ jobs:
           FLASK_DEBUG: 1
 
     steps:
-      - checkout
-      - run:
-          name: run tests
-          command: flask test
+      - poetry/install
 
 
 # Invoke jobs via workflows
@@ -27,6 +24,5 @@ jobs:
 workflows:
     build_and_test:
       jobs:
-        - poetry/install
         - build
         
