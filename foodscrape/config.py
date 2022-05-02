@@ -24,7 +24,7 @@ class ProdConfig(Config):
 
 
 class DevConfig(Config):
-    ENV = "dev"
+    ENV = "DEV"
     DEBUG = True
     DB_NAME = "dev.db"
 

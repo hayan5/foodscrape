@@ -9,4 +9,4 @@ TEST_PATH = os.path.join(PROJECT_ROOT, "tests")
 
 @click.command()
 def test():
-    os.system("pytest --cov=. tests/ --cov-report xml:cov.xml")
+    os.system("pytest --cov=foodscrape --cov-report xml:cov.xml")

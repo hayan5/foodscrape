@@ -1,24 +1,33 @@
 from __future__ import annotations
 
-from typing import List, Union
+from typing import List
 
-from sqlalchemy import true
+from sqlalchemy import Column, ForeignKey, Table, func, select
+from sqlalchemy.orm import relationship
+from sqlalchemy.types import Boolean, Integer, String
 
-from foodscrape.database import Column, Model
+from foodscrape.database import Base, session
 from foodscrape.extensions import db
 from foodscrape.logger import get_logger
+
+from .exceptions import FoodScrapeError
 
 logger = get_logger(__name__)
 
 
-class Sitemap(Model):
+"""
+    ------------Sitemap Tables------------
+"""
+
+
+class Sitemap(Base):
     __tablename__ = "sitemap"
 
-    id = Column(db.Integer, primary_key=True)
-    url = Column(db.String, unique=True, nullable=False)
+    id = Column(Integer, primary_key=True)
+    url = Column(String, unique=True, nullable=False)
 
-    ingredient_scraped = Column(db.Boolean, default=False, nullable=False)
-    recipe_scraped = Column(db.Boolean, default=False, nullable=False)
+    ingredient_scraped = Column(Boolean, default=False, nullable=False)
+    recipe_scraped = Column(Boolean, default=False, nullable=False)
 
     def __init__(self, url: str):
         self.url = url
@@ -31,17 +40,17 @@ class Sitemap(Model):
             self.recipe_scraped,
         )
 
-    def save(self) -> Union[Sitemap, None]:
+    def save(self) -> Sitemap:
         exists = (
-            db.session.query(Sitemap).filter_by(url=self.url).first()
-            is not None
+            session.query(Sitemap).filter_by(url=self.url).first() is not None
         )
-        if not exists:
-            db.session.add(self)
-            db.session.commit()
-            return self
+        if exists:
+            raise FoodScrapeError("URL already exists in table")
 
-        return None
+        session.add(self)
+        session.commit()
+
+        return self
 
     def scrape_ingredient(self) -> Sitemap:
         self.ingredient_scraped = True
@@ -76,12 +85,17 @@ class Sitemap(Model):
         return sitemaps
 
 
-class Ingredient(Model):
+"""
+    ------------Ingredient Tables------------
+"""
+
+
+class Ingredient(Base):
     __tablename__ = "ingredient"
 
-    id = Column(db.Integer, primary_key=True)
-    name = Column(db.String, unique=True, nullable=False)
-    times_seen = Column(db.Integer, default=1, nullable=False)
+    id = Column(Integer, primary_key=True)
+    name = Column(String, unique=True, nullable=False)
+    times_seen = Column(Integer, default=1, nullable=False)
 
     def __init__(self, name: str):
         self.name = name
@@ -94,12 +108,12 @@ class Ingredient(Model):
     def save(self) -> Ingredient:
 
         ingredient: Ingredient = (
-            db.session.query(Ingredient).filter_by(name=self.name).first()
+            session.query(Ingredient).filter_by(name=self.name).first()
         )
 
         if ingredient is None:
-            db.session.add(self)
-            db.session.commit()
+            session.add(self)
+            session.commit()
             return self
 
         ingredient.times_seen += 1
@@ -110,7 +124,7 @@ class Ingredient(Model):
     @staticmethod
     def get_seen_greater_than_or_eq(times_seen: int) -> List[Ingredient]:
         ingredients: List[Ingredient] = (
-            db.session.query(Ingredient)
+            session.query(Ingredient)
             .filter(Ingredient.times_seen >= times_seen)
             .all()
         )
@@ -119,103 +133,180 @@ class Ingredient(Model):
     @staticmethod
     def get_seen_less_than_or_eq(times_seen: int) -> List[Ingredient]:
         ingredients: List[Ingredient] = (
-            db.session.query(Ingredient)
+            session.query(Ingredient)
             .filter(Ingredient.times_seen <= times_seen)
             .all()
         )
         return ingredients
 
+    @staticmethod
+    def get_all_by_name(names: List[str]) -> List[Ingredient]:
+        names = [str.lower(name) for name in names]
 
-recipe_to_keyword = db.Table(
-    "recipe_to_keyword",
-    db.Column("id", db.Integer, primary_key=True),
-    db.Column(
-        "keyword_id",
-        db.Integer,
-        db.ForeignKey("keyword.id", ondelete="CASCADE"),
-        nullable=False,
-    ),
-    db.Column(
+        stmt = select(Ingredient).where(func.lower(Ingredient.name).in_(names))
+        return session.execute(stmt).scalars().all()
+
+
+"""
+    ------------Recipe Tables------------
+"""
+
+"""
+   Recipe:  Association Tables
+"""
+recipe_keyword_association = Table(
+    "recipe_keyword_association",
+    Base.metadata,
+    Column(
         "recipe_id",
-        db.Integer,
-        db.ForeignKey("recipe.id", ondelete="CASCADE"),
-        nullable=False,
+        ForeignKey("recipe.id"),
+        primary_key=True,
+    ),
+    Column(
+        "keyword_id",
+        ForeignKey("recipe_keyword.id"),
+        primary_key=True,
     ),
 )
 
+"""
+   Recipe: Helper Tables
+"""
 
-class Keyword(Model):
-    __tablename__ = "keyword"
 
-    id = Column(db.Integer, primary_key=True)
-    text = db.Column(db.String, unique=true)
-    recipes = db.relationship(
-        "Recipe", secondary=recipe_to_keyword, back_populates="keywords"
+class RecipeKeyword(Base):
+    __tablename__ = "recipe_keyword"
+
+    id = Column(Integer, primary_key=True)
+    text = Column(String, nullable=False)
+    recipe_id = Column(Integer, ForeignKey("recipe.id"))
+    recipes = relationship(
+        "Recipe",
+        secondary=recipe_keyword_association,
+        back_populates="keywords",
     )
 
     def __init__(self, text: str):
         self.text = text
 
+    def __repr__(self) -> str:
+        return "<{} {} {}>".format(
+            self.__class__.__name__,
+            self.text,
+            [recipe.name for recipe in self.recipes],
+        )
+
     @staticmethod
-    def get_all() -> List[Keyword]:
-        return db.session.query(Keyword).all()
+    def get_all() -> List[RecipeKeyword]:
+        return session.query(RecipeKeyword).all()
 
 
-class Recipe(Model):
+class RecipeInstruction(Base):
+    __tablename__ = "recipe_instruction"
+
+    id = Column(Integer, primary_key=True)
+
+    seq_num = Column(Integer, nullable=False)
+    text = Column(String, nullable=False)
+    recipe_id = Column(Integer, ForeignKey("recipe.id"))
+
+    def __init__(self, seq_num: int, text: str):
+        self.seq_num = seq_num
+        self.text = text
+
+    def __repr__(self) -> str:
+        return "<{} {} {}>".format(
+            self.__class__.__name__, self.seq_num, self.text
+        )
+
+    @staticmethod
+    def get_all() -> List[RecipeInstruction]:
+        return session.query(RecipeInstruction).all()
+
+
+class RecipeIngredient(Base):
+    __tablename__ = "recipe_ingredient"
+
+    id = Column(Integer, primary_key=True)
+
+    quantity = Column(String)
+    ingredient_name = Column(String)
+    original_text = Column(String)
+    recipe_id = Column(Integer, ForeignKey("recipe.id"), nullable=False)
+    ingredient_id = Column(Integer, ForeignKey("ingredient.id"))
+
+    def __init__(
+        self, quantity: str, ingredient_name: str, original_text: str
+    ):
+        self.quantity = quantity
+        self.ingredient_name = ingredient_name
+        self.original_text = original_text
+
+    def __repr__(self) -> str:
+        return "<{} {} {}>".format(
+            self.__class__.__name__, self.quantity, self.ingredient_name
+        )
+
+    @staticmethod
+    def get_all() -> List[RecipeIngredient]:
+        return session.query(RecipeIngredient).all()
+
+
+"""
+   Recipe: Main
+"""
+
+
+class Recipe(Base):
     __tablename__ = "recipe"
 
-    id = Column(db.Integer, primary_key=True)
-    name = Column(db.String)
-    date_published = Column(db.String)
-    description = Column(db.String)
-    image = Column(db.String)
-    author = Column(db.String)
-    recipe_category = Column(db.String)
-    recipe_yield = Column(db.String)
-    cook_time = Column(db.String)
-    prep_time = Column(db.String)
-    total_time = Column(db.String)
-    rating = Column(db.String)
+    id = Column(Integer, primary_key=True)
+    name = Column(String, nullable=False)
+    date_published = Column(String)
+    description = Column(String)
+    image = Column(String)
+    author = Column(String)
+    recipe_category = Column(String)
+    recipe_yield = Column(String)
+    cook_time = Column(String)
+    prep_time = Column(String)
+    total_time = Column(String)
+    rating = Column(String)
 
-    keywords = db.relationship(
-        "Keyword", secondary=recipe_to_keyword, back_populates="recipes"
+    instructions = relationship(
+        "RecipeInstruction", lazy=True, cascade="all, delete"
+    )
+    keywords = relationship(
+        "RecipeKeyword",
+        secondary=recipe_keyword_association,
+        back_populates="recipes",
+        lazy=True,
     )
 
-    def __init__(self, name: str):
+    ingredients = relationship(
+        "RecipeIngredient", lazy=True, cascade="all, delete"
+    )
+
+    def __init__(
+        self,
+        name: str,
+        keywords: List[RecipeKeyword] = [],
+        instructions: List[RecipeInstruction] = [],
+        ingredients: List[RecipeIngredient] = [],
+    ):
         self.name = name
-
-    def save(self, keywords: List[Keyword] = None) -> Recipe:
         self.keywords = keywords
+        self.instructions = instructions
+        self.ingredients = ingredients
 
-        db.session.add(self)
-        db.session.commit()
+    def __repr__(self) -> str:
+        return "<{} {} >".format(self.__class__.__name__, self.name)
+
+    def save(self) -> Recipe:
+        session.add(self)
+        session.commit()
         return self
 
-
-# instructions = db.relationship("Instruction", backref="recipe", lazy=True)
-# ingredients = db.relationship(
-#     "RecipeIngredient", backref="recipe", lazy=True
-# )
-
-
-# class Instruction(Model):
-#     __tablename__ = "instruction"
-
-#     id = db.Column(db.Integer, primary_key=True)
-# seq_num = db.Column(db.Integer)
-# text = db.Column(db.String)
-# recipe_id = db.Column(
-#     db.Integer, db.ForeignKey("recipe.id"), nullable=False
-# )
-
-
-# class Recipe_Ingredient(Model):
-#     __tablename__ = "recipe_ingredient"
-
-#     id = db.Column(db.Integer, primary_key=True)
-# text = db.Column(db.String)
-# quantity = db.Column(db.String)
-# ingredient_name = db.Column(db.String)
-# recipe_id = db.Column(
-#     db.Integer, db.ForeignKey("recipe.id"), nullable=False
-# )
+    @staticmethod
+    def get_all() -> List[Recipe]:
+        return session.query(Recipe).all()
