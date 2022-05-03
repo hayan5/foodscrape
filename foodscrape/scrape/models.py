@@ -146,6 +146,10 @@ class Ingredient(Base):
         stmt = select(Ingredient).where(func.lower(Ingredient.name).in_(names))
         return session.execute(stmt).scalars().all()
 
+    @staticmethod
+    def get_all() -> List[Ingredient]:
+        return session.query(Ingredient).all()
+
 
 """
     ------------Recipe Tables------------

@@ -1,8 +1,13 @@
 from foodscrape.logger import get_logger
 from foodscrape.scrape.models import Ingredient, Recipe, RecipeIngredient
-from foodscrape.scrape.service import get_recipes_by_ingredients
+from foodscrape.scrape.service import get_recipes_by_ingredients, scrape_recipe
 
 logger = get_logger(__name__)
+
+
+def test_scrape_recipe(database):
+    url = "https://www.food.com/recipe/barbs-zucchini-patties-99731"
+    scrape_recipe(url)
 
 
 def test_get_recipes_by_ingredients(database):
