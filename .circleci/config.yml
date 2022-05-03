@@ -4,25 +4,24 @@ version: 2.1
 
 
 orbs:
-  poetry: frameio/poetry@0.25.5
+  poetry: frameio/poetry@0.26.0
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
   build:
     docker:
-      - image: cimg/base:stable
+      - image: cimg/python:3.9
         environment:
           FLASK_APP: main.py
-          FLASK_DEBUG: 1
 
     steps:
+      - checkout
       - poetry/install
 
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-    build_and_test:
-      jobs:
-        - build
-        
+  example-workflow:
+    jobs:
+      - build
