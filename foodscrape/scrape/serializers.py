@@ -1,6 +1,19 @@
 from marshmallow import Schema, fields
 
 
+class SitemapSchema(Schema):
+    id = fields.Str()
+    url = fields.Url()
+    ingredient_scraped = fields.Boolean()
+    recipe_scraped = fields.Boolean()
+
+
+class IngredientSchema(Schema):
+    id = fields.Str()
+    name = fields.Str()
+    times_seen = fields.Str()
+
+
 class KeywordSchema(Schema):
     text = fields.String()
 
@@ -13,7 +26,7 @@ class InstructionSchema(Schema):
     recipe_id = fields.Integer()
 
 
-class IngredientSchema(Schema):
+class RecipeIngredientSchema(Schema):
     quantity = fields.Str()
     ingredient_name = fields.Str()
     text = fields.Str()
@@ -36,20 +49,11 @@ class RecipeSchema(Schema):  # type: ignore
     rating = fields.Str()
 
     instructions = fields.List(fields.Nested(InstructionSchema))
-    ingredients = fields.List(fields.Nested(IngredientSchema))
+    ingredients = fields.List(fields.Nested(RecipeIngredientSchema))
     keywords = fields.List(fields.Nested(KeywordSchema))
 
 
-class SearchSchema(Schema):
-    ingredient_name = fields.Str()
-
-
-recipe_schema = RecipeSchema()
-recipe_schemas = RecipeSchema(many=True)
-keyword_schema = KeywordSchema()
-keyword_schemas = KeywordSchema(many=True)
-ingredient_schema = IngredientSchema()
+sitemap_schema = SitemapSchema()
+sitemap_schemas = SitemapSchema(many=True)
 ingredient_schemas = IngredientSchema(many=True)
-instruction_schema = InstructionSchema()
-instruction_schemas = InstructionSchema(many=True)
-search_schema = SearchSchema(many=True)
+recipe_schemas = RecipeSchema(many=True)

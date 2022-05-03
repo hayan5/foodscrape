@@ -1,5 +1,4 @@
 import os
-import unittest
 
 import click
 
@@ -10,8 +9,4 @@ TEST_PATH = os.path.join(PROJECT_ROOT, "tests")
 
 @click.command()
 def test():
-    tests = unittest.TestLoader().discover(TEST_PATH, pattern="test_*.py")
-    result = unittest.TextTestRunner(verbosity=2).run(tests)
-    if result.wasSuccessful():
-        return 0
-    return 1
+    os.system("pytest --cov=foodscrape --cov-report xml:cov.xml")

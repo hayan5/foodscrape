@@ -2,7 +2,7 @@ import os
 import pickle
 import re
 from pathlib import Path
-from typing import List, Tuple
+from typing import List
 
 import pandas as pd
 import spacy
@@ -141,7 +141,7 @@ class Processor:
 
         return " ".join(processed_text)
 
-    def find_ingredients(self, sentence: str) -> List[Tuple[str, str]]:
+    def find_ingredients(self, sentence: str) -> List[str]:
         sentence = self._proccess_sentence(sentence)
         words = sentence.split(" ")
         ingredients_found = []
@@ -152,14 +152,14 @@ class Processor:
             j = i + 1
 
             if word_to_check in foods_found:
-                ingredients_found.append((word, word_to_check))
+                ingredients_found.append(word_to_check)
 
             while len(foods_found) > 0 and j < len(words):
                 word_to_check = word_to_check + " " + words[j]
                 j += 1
 
                 if word_to_check in foods_found:
-                    ingredients_found.append((word, word_to_check))
+                    ingredients_found.append(word_to_check)
 
         return ingredients_found
 

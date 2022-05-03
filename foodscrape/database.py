@@ -1,10 +1,7 @@
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import Session, declarative_base
 
 from .extensions import db
 
-Column = db.Column
-relationship = relationship
 Model = db.Model
-
-
-id = db.Column(db.Integer)
+Base = declarative_base(metadata=db.metadata)
+session: Session = db.session
