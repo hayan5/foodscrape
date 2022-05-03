@@ -17,7 +17,9 @@ jobs:
     steps:
       - checkout
       - poetry/install
-
+      - run:
+          name: Run tests
+          command: flask test
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
