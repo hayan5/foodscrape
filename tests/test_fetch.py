@@ -7,9 +7,6 @@ from requests import Session
 
 from foodscrape.exceptions import FoodscrapeException
 from foodscrape.fetch import fetch_data_compressed, fetch_data_uncompressed
-from foodscrape.logger import get_logger
-
-logger = get_logger(__name__)
 
 
 @responses.activate
