@@ -1,9 +1,9 @@
 import gzip
-import sys
 from tempfile import TemporaryFile
 
 from requests import RequestException, Session
 
+from foodscrape.exceptions import FoodscrapeException
 from foodscrape.logger import get_logger
 
 logger = get_logger(__name__)
@@ -32,7 +32,10 @@ def fetch_data_uncompressed(
             url,
             e,
         )
-        sys.exit()
+        raise FoodscrapeException(
+            f"An error occurred downloading data from {url} \n \
+            Cause of error:{e}",
+        )
 
 
 def fetch_data_compressed(
@@ -61,10 +64,13 @@ def fetch_data_compressed(
                 )
                 return data
 
-    except RequestException as e:
+    except (RequestException, gzip.BadGzipFile) as e:
         logger.error(
             "An error occurred downloading data from %s \n Cause of error: %s",
             url,
             e,
         )
-        sys.exit()
+        raise FoodscrapeException(
+            f"An error occurred downloading data from {url} \n \
+            Cause of error:{e}",
+        )

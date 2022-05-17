@@ -1,0 +1,2 @@
+class FoodscrapeException(Exception):
+    pass

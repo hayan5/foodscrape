@@ -8,7 +8,7 @@ from foodscrape.config import Config
 LOGGING_FORMATTER = logging.Formatter(
     Config.LOGGER_FORMAT, "%Y/%m/%d %H:%M:%S"
 )
-LOGGING_FILE = os.path.join(Config.PROJECT_ROOT, "logs/scraper.log")
+LOGGING_FILE = os.path.join(Config.LOG_DIR, "scraper.log")
 
 
 def get_console_handler():

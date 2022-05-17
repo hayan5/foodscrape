@@ -5,6 +5,8 @@ class Config:
     SECRET_KEY = os.getenv("FOODSCRAPE_SECRET", "secret-key")
     APP_DIR = os.path.abspath(os.path.dirname(__file__))
     PROJECT_ROOT = os.path.abspath(os.path.join(APP_DIR, os.pardir))
+    LOG_DIR = os.path.join(PROJECT_ROOT, "logs")
+    DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
@@ -26,8 +28,8 @@ class ProdConfig(Config):
 class DevConfig(Config):
     ENV = "DEV"
     DEBUG = True
-    DB_NAME = "dev.db"
 
+    DB_NAME = "dev.db"
     DB_PATH = os.path.join(Config.PROJECT_ROOT, DB_NAME)
     SQLALCHEMY_DATABASE_URI = "sqlite:///{0}".format(DB_PATH)
 
